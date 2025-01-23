@@ -471,6 +471,47 @@ class WPIClans(WPIBase):
                     resp_json = await response.json()
                     await check_wg_response(resp_json)
 
-                    return tuple(
-                        clan for clan in resp_json["data"].values()
-                    )
+                    return tuple(clan for clan in resp_json["data"].values())
+
+    async def account_info(
+        self,
+        server: str,
+        account_id: Union[int, Iterable[int], str] = None,
+        extra: Optional[Union[str, Iterable[str]]] = None,
+        fields: Optional[Union[str, Iterable[str]]] = None,
+        language: Optional[str] = None,
+    ):
+        assert server
+        assert account_id
+        async with self.limiter:
+            async with aiohttp.ClientSession(server) as session:
+                api_uri = "/wows/clans/accountinfo/"
+                payload = {
+                    "application_id": self.application_id,
+                    "account_id": (
+                        account_id
+                        if isinstance(account_id, int) or isinstance(account_id, str)
+                        else ",".join(map(str, account_id))
+                    ),
+                }
+
+                if extra:
+                    if isinstance(extra, (list, tuple)):
+                        extra = ",".join(extra)
+                    payload["extra"] = extra
+
+                if fields:
+                    if isinstance(fields, (list, tuple)):
+                        fields = ",".join(fields)
+                    payload["fields"] = fields
+
+                if language:
+                    payload["language"] = language
+
+                async with session.get(
+                    api_uri, params=payload, raise_for_status=True
+                ) as response:
+                    resp_json = await response.json()
+                    await check_wg_response(resp_json)
+
+                    return tuple(player_clan for player_clan in resp_json["data"].values())
