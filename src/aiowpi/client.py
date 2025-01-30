@@ -6,6 +6,7 @@ import aiohttp
 from collections.abc import Iterable
 from .error import WPIGetInstanceError, WPIInstanceInitError, check_wg_response
 import sys
+from .decorators import retry_decorator
 
 
 class WPIClient:
@@ -50,6 +51,7 @@ class WPIBase:
 
 
 class WPIPlayer(WPIBase):
+    @retry_decorator()
     async def serch(
         self,
         server: str,
@@ -88,6 +90,7 @@ class WPIPlayer(WPIBase):
                         ((i["nickname"], i["account_id"]) for i in resp_json["data"])
                     )
 
+    @retry_decorator()
     async def personal_data(
         self,
         server: str,
@@ -139,6 +142,7 @@ class WPIPlayer(WPIBase):
 
 
 class WPIEncyclopedia(WPIBase):
+    @retry_decorator()
     async def _1page_warships(
         self,
         server: str,
@@ -200,6 +204,7 @@ class WPIEncyclopedia(WPIBase):
                         tuple(resp_json["data"].values()),
                     )
 
+    @retry_decorator()
     async def warships(
         self,
         server: str,
@@ -265,6 +270,7 @@ class WPIEncyclopedia(WPIBase):
 
 
 class WPIWarships(WPIBase):
+    @retry_decorator()
     async def _1statistics(
         self,
         server: str,
@@ -319,6 +325,7 @@ class WPIWarships(WPIBase):
 
                     return resp_json["data"].get(str(account_id), None)
 
+    @retry_decorator()
     async def statistics(
         self,
         server: str,
@@ -376,6 +383,7 @@ class WPIWarships(WPIBase):
 
 
 class WPIClans(WPIBase):
+    @retry_decorator()
     async def search(
         self,
         server: str,
@@ -429,6 +437,7 @@ class WPIClans(WPIBase):
                         for clan in resp_json["data"]
                     )
 
+    @retry_decorator()
     async def details(
         self,
         server: str,
@@ -473,6 +482,7 @@ class WPIClans(WPIBase):
 
                     return tuple(clan for clan in resp_json["data"].values())
 
+    @retry_decorator()
     async def account_info(
         self,
         server: str,
@@ -514,4 +524,6 @@ class WPIClans(WPIBase):
                     resp_json = await response.json()
                     await check_wg_response(resp_json)
 
-                    return tuple(player_clan for player_clan in resp_json["data"].values())
+                    return tuple(
+                        player_clan for player_clan in resp_json["data"].values()
+                    )
